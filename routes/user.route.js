@@ -54,23 +54,28 @@ router.post('/signin', async (req, res) => {
             return redirect('/user/signin')
         }
 
-        const user = await User.matchPassword(email, password);
+        const token = await User.matchPasswordAndGenerateToken(email, password);
 
-        // console.log(user);
+        // console.log(token);
         
-        // Successfully matched, handle login success (e.g., create session, etc.)
-        res.redirect('/');
+        return res.cookie('token', token).redirect('/');
 
     } catch (error) {
-        console.error(error.message); // Log the error for debugging
-        // Send a user-friendly message back to the client
+        console.error(error.message);
+        
         if (error.message === 'User Not Found!') {
-            return res.status(404).send('User not found.'); // Not found response
+            
+            return res.render('signin', {
+                error: "User not found."
+            })
+            
         } else if (error.message === 'Incorrect Password') {
-            return res.status(401).send('Incorrect password.'); // Unauthorized response
+            return res.render('signin', {
+                error: "Incorrect password."
+            })
         }
-        // Handle other unexpected errors
-        return res.status(500).send('An error occurred.'); // Internal server error
+        
+        return res.status(500).send('An error occurred.');
     }
 })
 
